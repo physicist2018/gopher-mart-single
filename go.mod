@@ -1,6 +1,6 @@
 module github.com/physicist2018/gopher-mart-single
 
-go 1.24.0
+go 1.23.6
 
 require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869

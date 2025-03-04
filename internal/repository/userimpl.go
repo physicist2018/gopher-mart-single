@@ -3,21 +3,22 @@ package repository
 import (
 	"errors"
 
+	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
 	"gorm.io/gorm"
 )
 
 type userRepository struct {
-	db *gorm.DB
+	conn *connector.Connector
 }
 
 // Функция для создания нового репозитория пользователей
-func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db: db}
+func NewUserRepository(conn *connector.Connector) UserRepository {
+	return &userRepository{conn: conn}
 }
 
 func (r *userRepository) CreateUser(user *models.User) error {
-	if err := r.db.Create(user).Error; err != nil {
+	if err := r.conn.DB().Create(user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -25,7 +26,7 @@ func (r *userRepository) CreateUser(user *models.User) error {
 
 func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	var user models.User
-	if err := r.db.First(&user, id).Error; err != nil {
+	if err := r.conn.DB().First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -36,7 +37,7 @@ func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 
 func (r *userRepository) GetUserByLogin(login string) (*models.User, error) {
 	var user models.User
-	if err := r.db.Where("login = ?", login).First(&user).Error; err != nil {
+	if err := r.conn.DB().Where("login = ?", login).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -46,14 +47,14 @@ func (r *userRepository) GetUserByLogin(login string) (*models.User, error) {
 }
 
 func (r *userRepository) DeleteUser(id uint) error {
-	if err := r.db.Delete(&models.User{}, id).Error; err != nil {
+	if err := r.conn.DB().Delete(&models.User{}, id).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *userRepository) UpdateUser(user *models.User) error {
-	if err := r.db.Save(user).Error; err != nil {
+	if err := r.conn.DB().Save(user).Error; err != nil {
 		return err
 	}
 	return nil

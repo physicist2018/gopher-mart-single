@@ -30,6 +30,8 @@ func main() {
 	r.POST("/api/user/login", handlers.LoginUser)
 	api := r.Group("/api")
 	api.Use(authMiddleware)
+	{
+	}
 	//r.GET("/api/user/:id", handlers.GetUserByID)
 	r.Run(":8080")
 }

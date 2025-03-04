@@ -1,12 +1,12 @@
 module github.com/physicist2018/gopher-mart-single
 
-go 1.23.0
+go 1.22.4
 
 require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	golang.org/x/crypto v0.35.0
+	golang.org/x/crypto v0.33.0
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7

@@ -1,0 +1,18 @@
+version: "2"
+cloud:
+  organization: "Шмирко К.А."
+  project: "GopherMart"
+  hostname: ""
+servers: []
+sql:
+  - schema: "db/schema.sql"
+    queries: "db/queries/"
+    engine: "postgresql"
+    gen:
+      go:
+        out: "internal/database/db"
+overrides:
+  go: null
+plugins: []
+rules: []
+options: {}

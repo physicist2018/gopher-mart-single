@@ -17,7 +17,7 @@ type Config struct {
 func LoadConfig() *Config {
 	// Определение флагов
 	serverAddress := flag.String("a", ":8080", "Address and port to run the server (RUN_ADDRESS)")
-	databaseURI := flag.String("d", "postgres://user:password@localhost:5432/gofermart_db", "Database connection string (DATABASE_URI)")
+	databaseURI := flag.String("d", "postgres://kshmirko:123123@kshmirko1.fvds.ru:5432/kshmirko", "Database connection string (DATABASE_URI)")
 	accrualSystemAddress := flag.String("r", "http://accrual-system.local", "Accrual system address (ACCRUAL_SYSTEM_ADDRESS)")
 	jwtSecret := flag.String("jwt-secret", "secret", "Secret key for JWT token signing (JWT_SECRET)")
 	tokenExpiry := flag.Duration("token-expiry", time.Hour*24, "JWT token expiry duration")

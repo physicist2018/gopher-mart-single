@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	mid "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 	"github.com/physicist2018/gopher-mart-single/internal/config"
 	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
 	"github.com/physicist2018/gopher-mart-single/internal/handlers"
@@ -26,15 +26,16 @@ func main() {
 	db.AutoMigrate(&models.User{}, &models.Balance{}, &models.Order{}, &models.Transaction{}, &models.Withdrawal{})
 
 	r := echo.New()
+	r.Logger.SetLevel(log.DEBUG)
 	r.HideBanner = true
-	r.Use(mid.LoggerWithConfig(
-		mid.LoggerConfig{
-			Format: "{time=${time_rfc3339}, id=${id} method=${method}, uri=${uri}, status=${status}}\n",
-		},
-	))
-	r.Use(mid.Recover())
 
-	log.Println("Secret:", cfg.JWTSecret)
+	r.Use(mid.Recover())
+	r.Use(middleware.Gzip())
+	r.Use(middleware.Decompress())
+	r.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
+		c.Logger().Infof("Request Body: %v", string(reqBody))
+		c.Logger().Infof("Response Body: %v", string(resBody))
+	}))
 	userRepo := repository.NewUserRepository(db)
 	authService := authservice.NewAuthService(cfg.JWTSecret, userRepo)
 	authMiddleware := middlewares.JWTAuthMiddleware(authService)

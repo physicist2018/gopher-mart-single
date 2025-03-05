@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
 	"github.com/physicist2018/gopher-mart-single/internal/repository"
 	"github.com/physicist2018/gopher-mart-single/internal/services/authservice"
@@ -17,8 +17,8 @@ import (
 
 func TestLoginUser(t *testing.T) {
 	// Настраиваем окружение
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+
+	r := echo.New()
 
 	// Создаем тестовую базу данных
 	db, err := setupDB("test.db")

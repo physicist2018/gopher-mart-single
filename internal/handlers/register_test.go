@@ -9,18 +9,17 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
-	"github.com/gin-gonic/gin"
-	"github.com/glebarez/sqlite"
+	"github.com/labstack/echo/v4"
+	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
 	"github.com/physicist2018/gopher-mart-single/internal/repository"
 	"github.com/physicist2018/gopher-mart-single/internal/services/authservice"
-	"gorm.io/gorm"
 )
 
 func TestRegisterUser(t *testing.T) {
 	// Test code here
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+
+	r := echo.New()
 
 	db, err := setupDB("test.db")
 	if err != nil {
@@ -59,14 +58,13 @@ func TestRegisterUser(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, w.Code)
 }
 
-func setupDB(dbname string) (*gorm.DB, error) {
+func setupDB(dbname string) (*connector.Connector, error) {
 	os.Remove(dbname)
-	db, err := gorm.Open(sqlite.Open(dbname), &gorm.Config{})
+	db, err := connector.NewDBConnector("sqlite", dbname)
 	if err != nil {
-		return nil, err
-
+		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Balance{}, &models.Order{}, &models.Transaction{}, &models.Withdrawal{})
-	return db, nil
+	err = db.AutoMigrate(&models.User{}, &models.Balance{}, &models.Order{}, &models.Transaction{}, &models.Withdrawal{})
+	return db, err
 }

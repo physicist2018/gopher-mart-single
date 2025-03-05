@@ -5,30 +5,29 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
-	"github.com/physicist2018/gopher-mart-single/internal/services/authservice"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
 )
 
-func (h *Handler) LoginUser(c *gin.Context) {
+func (h *Handler) LoginUser(c echo.Context) error {
 	// Аутентификация пользователя
 
 	var creds models.User
-	if err := c.ShouldBindJSON(&creds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
+	if err := c.Bind(&creds); err != nil {
+		return err
 	}
 
-	token, err := h.authService.Login(c.Request.Context(), creds.Login, creds.Password)
+	token, err := h.authService.Login(c.Request().Context(), creds.Login, creds.Password)
 	if err != nil {
 		switch {
 		case errors.Is(err, authservice.ErrUserNotFound), errors.Is(err, authservice.ErrInvalidCredentials):
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid login or password"})
+			return c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid login or password"})
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		}
-		return
 	}
 
 	// Возвращаем токен в ответе
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	return c.JSON(http.StatusOK, gin.H{"token": token})
 }

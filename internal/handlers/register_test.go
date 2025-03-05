@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
 	"github.com/physicist2018/gopher-mart-single/internal/repository"
@@ -18,8 +18,8 @@ import (
 
 func TestRegisterUser(t *testing.T) {
 	// Test code here
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+
+	r := echo.New()
 
 	db, err := setupDB("test.db")
 	if err != nil {

@@ -3,11 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
-	"github.com/physicist2018/gopher-mart-single/internal/repository"
-	"github.com/physicist2018/gopher-mart-single/internal/services/authservice"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/repository"
 )
 
 type Handler struct {
@@ -20,44 +19,31 @@ func NewHandler(userRepo repository.UserRepository, authService authservice.Auth
 		authService: authService}
 }
 
-func (h *Handler) RegisterUser(c *gin.Context) {
+func (h *Handler) RegisterUser(c echo.Context) error {
 	// Регистрация пользователя
 
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
+	var userInput models.User
+	if err := c.Bind(&userInput); err != nil {
+
+		return err
 	}
 
-	// Проверяем уникальность логина
-	existingUser, err := h.userRepo.GetUserByLogin(user.Login)
+	_, err := h.authService.Register(c.Request().Context(), userInput.Login, userInput.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return err
 	}
 
-	if existingUser != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": http.StatusText(http.StatusConflict)})
-		return
-	}
-
-	// Хешируем пароль
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	// Автоматическая авторизация после успешной регистрации
+	token, err := h.authService.Login(c.Request().Context(), userInput.Login, userInput.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
-		return
+		return c.JSON(http.StatusInternalServerError,
+			echo.Map{"error": "Failed to generate token"},
+		)
 	}
-	user.Password = string(hashedPassword)
 
-	// Сохраняем пользователя
-	if err := h.userRepo.CreateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
+	return c.JSON(http.StatusOK, echo.Map{
 		"message": "User registered",
+		"token":   token, // Возвращаем JWT токен
 	})
 
 }

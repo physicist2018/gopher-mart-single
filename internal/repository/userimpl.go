@@ -5,6 +5,7 @@ import (
 
 	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/repository"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +14,7 @@ type userRepository struct {
 }
 
 // Функция для создания нового репозитория пользователей
-func NewUserRepository(conn *connector.Connector) UserRepository {
+func NewUserRepository(conn *connector.Connector) repository.UserRepository {
 	return &userRepository{conn: conn}
 }
 

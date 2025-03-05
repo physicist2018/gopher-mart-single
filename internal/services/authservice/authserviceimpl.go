@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/physicist2018/gopher-mart-single/internal/models"
-	"github.com/physicist2018/gopher-mart-single/internal/repository"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,7 +19,7 @@ type authService struct {
 	userRepository repository.UserRepository // Зависимость от UserRepository
 }
 
-func NewAuthService(secretKey string, userRepository repository.UserRepository) AuthService {
+func NewAuthService(secretKey string, userRepository repository.UserRepository) authservice.AuthService {
 	return &authService{secretKey: secretKey, userRepository: userRepository}
 }
 
@@ -29,7 +31,7 @@ func (s *authService) Register(ctx context.Context, login, password string) (*mo
 	}
 
 	if existingUser != nil {
-		return nil, ErrUserAlreadyExists
+		return nil, authservice.ErrUserAlreadyExists
 	}
 
 	// Хэшируем пароль
@@ -48,7 +50,7 @@ func (s *authService) Register(ctx context.Context, login, password string) (*mo
 	if err := s.userRepository.CreateUser(user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
-
+	log.Println("register Secret key: ", s.secretKey)
 	return user, nil
 }
 
@@ -62,14 +64,15 @@ func (s *authService) Login(ctx context.Context, login, password string) (string
 	}
 
 	if user == nil {
-		return "", ErrUserNotFound
+		return "", authservice.ErrUserNotFound
 	}
 
 	// Проверяем пароль
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", ErrInvalidCredentials
+		return "", authservice.ErrInvalidCredentials
 	}
 
+	log.Println("login Secret key: ", s.secretKey)
 	// Генерируем JWT-токен
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
@@ -104,10 +107,10 @@ func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*m
 	}
 
 	// Получаем ID пользователя из токена
-	userID := uint(claims["sub"].(uint))
+	userID := claims["sub"].(float64)
 
 	// Получаем пользователя по ID
-	user, err := s.userRepository.GetUserByID(userID)
+	user, err := s.userRepository.GetUserByID(uint(userID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}

@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
-	"github.com/physicist2018/gopher-mart-single/internal/models"
+	"github.com/golang-jwt/jwt"
 	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
 	"github.com/physicist2018/gopher-mart-single/internal/ports/repository"
 )
@@ -19,31 +20,45 @@ func NewHandler(userRepo repository.UserRepository, authService authservice.Auth
 		authService: authService}
 }
 
-func (h *Handler) RegisterUser(c echo.Context) error {
-	// Регистрация пользователя
+var JwtKey = []byte("very-secret-passkey")
 
-	var userInput models.User
-	if err := c.Bind(&userInput); err != nil {
+// User struct to represent a user in the system
+type User struct {
+	Username string
+	Password string
+}
 
-		return err
-	}
+// Credentials struct for handling login
+type Credentials struct {
+	Username string `json:"login"`
+	Password string `json:"password"`
+}
 
-	_, err := h.authService.Register(c.Request().Context(), userInput.Login, userInput.Password)
+// Claims for JWT payload
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+// Register a new user
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		return err
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	// Автоматическая авторизация после успешной регистрации
-	token, err := h.authService.Login(c.Request().Context(), userInput.Login, userInput.Password)
+	_, err = h.authService.Register(r.Context(), creds.Username, creds.Password)
+	log.Println(err)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			echo.Map{"error": "Failed to generate token"},
-		)
+		if err == authservice.ErrUserAlreadyExists {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{
-		"message": "User registered",
-		"token":   token, // Возвращаем JWT токен
-	})
-
+	w.WriteHeader(http.StatusCreated)
 }

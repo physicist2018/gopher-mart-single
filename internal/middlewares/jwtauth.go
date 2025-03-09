@@ -1,38 +1,75 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
-	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
+	"github.com/golang-jwt/jwt"
+	"github.com/physicist2018/gopher-mart-single/internal/handlers"
 )
 
-// JWTAuthMiddleware для Echo
-func JWTAuthMiddleware(authService authservice.AuthService) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			// Получаем заголовок Authorization
-			authHeader := c.Request().Header.Get("Authorization")
-			if authHeader == "" {
-				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authorization header is required"})
-			}
+type UserName struct{}
 
-			// Извлекаем токен из заголовка
-			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+// Middleware to validate JWT token from header or cookie
+func JWTAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var tokenStr string
 
-			// Валидируем токен с помощью AuthService
-			user, err := authService.ValidateToken(c.Request().Context(), tokenString)
+		// Check token in Authorization header
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+		} else {
+			// Check token in cookie
+			cookie, err := r.Cookie("token")
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid token"})
+				if err == http.ErrNoCookie {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+				w.WriteHeader(http.StatusBadRequest)
+				return
 			}
-
-			// Устанавливаем информацию о пользователе в контекст Echo
-			c.Set("userID", user.ID)
-			c.Set("user", user)
-
-			// Передаем управление следующему обработчику
-			return next(c)
+			tokenStr = cookie.Value
 		}
-	}
+
+		// Initialize Claims
+		claims := &handlers.Claims{}
+
+		// Parse the JWT
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return handlers.JwtKey, nil
+		})
+
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !token.Valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		// Set user information in request context
+		r = r.WithContext(contextWithUser(r.Context(), claims.Username))
+
+		// Proceed with the next handler
+		next.ServeHTTP(w, r)
+	})
 }
+
+// Context helpers for user information
+func contextWithUser(ctx context.Context, username string) context.Context {
+	return context.WithValue(ctx, UserName{}, username)
+}
+
+// func userFromContext(ctx context.Context) string {
+// 	username, _ := ctx.Value(UserName{}).(string)
+// 	return username
+// }

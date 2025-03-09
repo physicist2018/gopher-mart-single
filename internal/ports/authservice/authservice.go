@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/physicist2018/gopher-mart-single/internal/models"
+	db "github.com/physicist2018/gopher-mart-single/internal/database/db/postgres"
 )
 
 var (
@@ -18,11 +18,11 @@ var (
 
 type AuthService interface {
 	// Register регистрирует нового пользователя.
-	Register(ctx context.Context, login, password string) (*models.User, error)
+	Register(ctx context.Context, login, password string) (*db.User, error)
 
 	// Login выполняет аутентификацию пользователя и возвращает токен.
 	Login(ctx context.Context, login, password string) (string, error)
 
 	// ValidateToken проверяет токен и возвращает информацию о пользователе.
-	ValidateToken(ctx context.Context, token string) (*models.User, error)
+	ValidateToken(ctx context.Context, token string) (*db.User, error)
 }

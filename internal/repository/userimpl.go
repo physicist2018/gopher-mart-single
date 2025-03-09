@@ -1,62 +1,52 @@
 package repository
 
 import (
-	"errors"
+	"context"
+	"log"
 
-	"github.com/physicist2018/gopher-mart-single/internal/database/connector"
-	"github.com/physicist2018/gopher-mart-single/internal/models"
+	"github.com/lib/pq"
+	db "github.com/physicist2018/gopher-mart-single/internal/database/db/postgres"
+	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
 	"github.com/physicist2018/gopher-mart-single/internal/ports/repository"
-	"gorm.io/gorm"
 )
 
 type userRepository struct {
-	conn *connector.Connector
+	query *db.Queries
 }
 
 // Функция для создания нового репозитория пользователей
-func NewUserRepository(conn *connector.Connector) repository.UserRepository {
-	return &userRepository{conn: conn}
-}
-
-func (r *userRepository) CreateUser(user *models.User) error {
-	if err := r.conn.DB().Create(user).Error; err != nil {
-		return err
+func NewUserRepository(dbtx db.DBTX) repository.UserRepository {
+	return &userRepository{
+		query: db.New(dbtx),
 	}
-	return nil
 }
 
-func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
-	var user models.User
-	if err := r.conn.DB().First(&user, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+// Реализация метода GetUserByLogin интерфейса UserRepository
+func (r *userRepository) GetUserByLogin(ctx context.Context, login string) (db.User, error) {
+	return r.query.GetUserByLogin(ctx, login)
+}
+
+func (r *userRepository) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
+	log.Println(arg)
+	user, err := r.query.CreateUser(ctx, arg)
+	if err != nil {
+
+		if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23505" { // unique_violation
+			return db.User{}, authservice.ErrUserAlreadyExists
 		}
-		return nil, err
+		return db.User{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
-func (r *userRepository) GetUserByLogin(login string) (*models.User, error) {
-	var user models.User
-	if err := r.conn.DB().Where("login = ?", login).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
+func (r *userRepository) GetUserByID(ctx context.Context, id int32) (db.User, error) {
+	return r.query.GetUserByID(ctx, id)
 }
 
-func (r *userRepository) DeleteUser(id uint) error {
-	if err := r.conn.DB().Delete(&models.User{}, id).Error; err != nil {
-		return err
-	}
-	return nil
+func (r *userRepository) UpdateUserBalance(ctx context.Context, arg db.UpdateUserBalanceParams) (db.User, error) {
+	return r.query.UpdateUserBalance(ctx, arg)
 }
 
-func (r *userRepository) UpdateUser(user *models.User) error {
-	if err := r.conn.DB().Save(user).Error; err != nil {
-		return err
-	}
-	return nil
+func (r *userRepository) UpdateUserRole(ctx context.Context, arg db.UpdateUserRoleParams) (db.User, error) {
+	return r.query.UpdateUserRole(ctx, arg)
 }

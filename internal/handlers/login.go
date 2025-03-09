@@ -1,33 +1,67 @@
 package handlers
 
 import (
-	"errors"
+	"encoding/json"
+	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"github.com/labstack/echo/v4"
-	"github.com/physicist2018/gopher-mart-single/internal/models"
-	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
+	"time"
 )
 
-func (h *Handler) LoginUser(c echo.Context) error {
-	// Аутентификация пользователя
-
-	var creds models.User
-	if err := c.Bind(&creds); err != nil {
-		return err
-	}
-
-	token, err := h.authService.Login(c.Request().Context(), creds.Login, creds.Password)
+// Authenticate user and set JWT in cookie and header
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		switch {
-		case errors.Is(err, authservice.ErrUserNotFound), errors.Is(err, authservice.ErrInvalidCredentials):
-			return c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid login or password"})
-		default:
-			return c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	// Возвращаем токен в ответе
-	return c.JSON(http.StatusOK, gin.H{"token": token})
+	token, err := h.authService.Login(r.Context(), creds.Username, creds.Password)
+	log.Println(err)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// // Check if the user exists
+	// user, err := h.userRepo.GetUserByLogin(r.Context(), creds.Username)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
+
+	// // Compare the provided password with stored hashed password
+	// err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
+
+	// // Create JWT token
+	expirationTime := time.Now().Add(5 * time.Minute)
+	// claims := &Claims{
+	// 	Username: creds.Username,
+	// 	StandardClaims: jwt.StandardClaims{
+	// 		ExpiresAt: expirationTime.Unix(),
+	// 	},
+	// }
+
+	// // Generate encoded token
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// tokenString, err := token.SignedString(JwtKey)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// Set JWT as cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: expirationTime,
+	})
+
+	// Set JWT in header
+	w.Header().Set("Authorization", "Bearer "+token)
+
+	w.Write([]byte("Login successful"))
 }

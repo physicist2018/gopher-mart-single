@@ -5,12 +5,18 @@ cloud:
   hostname: ""
 servers: []
 sql:
-  - schema: "db/schema.sql"
-    queries: "db/queries/"
+  - schema: "internal/database/db/migrations"
+    queries: "internal/database/db/queries/"
     engine: "postgresql"
     gen:
       go:
-        out: "internal/database/db"
+        package: "db"
+        sql_package: "database/sql"
+        out: "internal/database/db/postgres"
+        emit_db_tags: true
+        emit_json_tags: true
+        #emit_prepared_queries: true
+        #emit_sql_as_comment: true
 overrides:
   go: null
 plugins: []

@@ -44,6 +44,8 @@ func NewAuthService(secretKey string, userRepo repository.UserRepository) AuthSe
 }
 
 // Register регистрирует нового пользователя
+// - `409` — логин уже занят;
+// - `500` — внутренняя ошибка сервера.
 func (as *authService) Register(ctx context.Context, login, password string) (*db.User, error) {
 
 	// Хеширование пароля

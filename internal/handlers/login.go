@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
 	"net/http"
 	"time"
+
+	"github.com/physicist2018/gopher-mart-single/internal/ports/authservice"
 )
 
 // Authenticate user and set JWT in cookie and header
@@ -17,41 +19,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := h.authService.Login(r.Context(), creds.Username, creds.Password)
-	log.Println(err)
+
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		if errors.Is(err, authservice.ErrInvalidCredentials) {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// // Check if the user exists
-	// user, err := h.userRepo.GetUserByLogin(r.Context(), creds.Username)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	return
-	// }
 
-	// // Compare the provided password with stored hashed password
-	// err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	return
-	// }
-
-	// // Create JWT token
+	// Create JWT token
 	expirationTime := time.Now().Add(5 * time.Minute)
-	// claims := &Claims{
-	// 	Username: creds.Username,
-	// 	StandardClaims: jwt.StandardClaims{
-	// 		ExpiresAt: expirationTime.Unix(),
-	// 	},
-	// }
-
-	// // Generate encoded token
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// tokenString, err := token.SignedString(JwtKey)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
 
 	// Set JWT as cookie
 	http.SetCookie(w, &http.Cookie{
@@ -62,6 +40,5 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Set JWT in header
 	w.Header().Set("Authorization", "Bearer "+token)
-
-	w.Write([]byte("Login successful"))
+	w.WriteHeader(http.StatusOK)
 }

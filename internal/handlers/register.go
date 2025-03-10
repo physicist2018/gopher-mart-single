@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/golang-jwt/jwt"
@@ -50,7 +49,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = h.authService.Register(r.Context(), creds.Username, creds.Password)
-	log.Println(err)
 	if err != nil {
 		if err == authservice.ErrUserAlreadyExists {
 			w.WriteHeader(http.StatusConflict)

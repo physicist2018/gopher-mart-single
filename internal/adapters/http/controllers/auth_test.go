@@ -22,7 +22,6 @@ func (m *MockAuthUseCase) Execute(login, password string) (string, error) {
 	args := m.Called(login, password)
 	return args.String(0), args.Error(1)
 }
-
 func TestAuthController_Login_Success(t *testing.T) {
 	// Create a mock AuthUseCase
 	mockAuthUseCase := new(MockAuthUseCase)
@@ -61,7 +60,6 @@ func TestAuthController_Login_Success(t *testing.T) {
 
 	// Assert the cookie was set
 	cookies := w.Result().Cookies()
-	defer w.Result().Body.Close()
 
 	assert.Equal(t, 1, len(cookies), "Expected one cookie to be set")
 	assert.Equal(t, "token", cookies[0].Name, "Expected cookie name to be 'token'")
@@ -127,8 +125,11 @@ func TestAuthController_Login_Unauthorized(t *testing.T) {
 	// Assert the response status code
 	assert.Equal(t, http.StatusUnauthorized, w.Code, "Expected status code 401")
 
+	// Read the response body once and store it in a variable
+	responseBody := w.Body.String()
+
 	// Assert the response body
-	assert.Contains(t, w.Body.String(), "invalid credentials", "Expected error message in response body")
+	assert.Contains(t, responseBody, "invalid credentials", "Expected error message in response body")
 
 	// Verify that the mock was called as expected
 	mockAuthUseCase.AssertExpectations(t)

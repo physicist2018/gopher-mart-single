@@ -13,12 +13,18 @@ type BalanceRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+func NewBalanceRepositoryImpl(db *sqlx.DB) repository.BalanceRepository {
+	return &BalanceRepositoryImpl{
+		db: db,
+	}
+}
+
 const balanceQueryString = `
 SELECT 
     u.balance + 
     COALESCE(SUM(CASE WHEN t.type_transaction = 'ACCRUAL' THEN t.amount ELSE 0 END), 0) - 
-    COALESCE(SUM(CASE WHEN t.type_transaction = 'WITHDRAWAL' THEN t.amount ELSE 0 END), 0) AS remaining_balance,
-    COALESCE(SUM(CASE WHEN t.type_transaction = 'WITHDRAWAL' THEN t.amount ELSE 0 END), 0) AS total_withdrawal
+    COALESCE(SUM(CASE WHEN t.type_transaction = 'WITHDRAWAL' THEN t.amount ELSE 0 END), 0) AS current,
+    COALESCE(SUM(CASE WHEN t.type_transaction = 'WITHDRAWAL' THEN t.amount ELSE 0 END), 0) AS withdrawn
 FROM users u
 LEFT JOIN Transactions t ON u.id = t.user_id
 WHERE u.id = $1

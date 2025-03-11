@@ -7,5 +7,5 @@ import (
 )
 
 type BalanceRepository interface {
-	GetBalanceForUserID(ctx context.Context, userId int) (*entities.Balance, error)
+	GetBalanceForUserID(ctx context.Context, userID int) (*entities.Balance, error)
 }

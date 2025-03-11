@@ -24,9 +24,9 @@ LEFT JOIN Transactions t ON u.id = t.user_id
 WHERE u.id = $1
 GROUP BY u.id;`
 
-func (b *BalanceRepositoryImpl) GetBalanceForUserID(ctx context.Context, userId int) (*entities.Balance, error) {
+func (b *BalanceRepositoryImpl) GetBalanceForUserID(ctx context.Context, userID int) (*entities.Balance, error) {
 	balance := &entities.Balance{}
-	err := b.db.GetContext(ctx, balance, balanceQueryString, userId)
+	err := b.db.GetContext(ctx, balance, balanceQueryString, userID)
 	if err != nil {
 		return nil, errors.Join(repository.ErrUserNotFound, err)
 	}

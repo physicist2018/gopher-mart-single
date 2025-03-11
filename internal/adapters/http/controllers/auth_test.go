@@ -61,6 +61,8 @@ func TestAuthController_Login_Success(t *testing.T) {
 
 	// Assert the cookie was set
 	cookies := w.Result().Cookies()
+	defer w.Result().Body.Close()
+
 	assert.Equal(t, 1, len(cookies), "Expected one cookie to be set")
 	assert.Equal(t, "token", cookies[0].Name, "Expected cookie name to be 'token'")
 	assert.Equal(t, "mock-token", cookies[0].Value, "Expected cookie value to be 'mock-token'")

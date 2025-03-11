@@ -58,8 +58,12 @@ func TestAuthController_Login_Success(t *testing.T) {
 	assert.Equal(t, "application/json", w.Header().Get("Content-Type"), "Expected Content-Type header to be application/json")
 	assert.Equal(t, "Bearer mock-token", w.Header().Get("Authorization"), "Expected Authorization header to contain the token")
 
+	// Get the HTTP response from the recorder
+	resp := w.Result()
+	defer resp.Body.Close() // Ensure the response body is closed
+
 	// Assert the cookie was set
-	cookies := w.Result().Cookies()
+	cookies := resp.Cookies()
 
 	assert.Equal(t, 1, len(cookies), "Expected one cookie to be set")
 	assert.Equal(t, "token", cookies[0].Name, "Expected cookie name to be 'token'")

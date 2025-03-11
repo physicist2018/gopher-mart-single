@@ -2,39 +2,47 @@ package config
 
 import (
 	"flag"
-	"time"
+	"os"
+	"strings"
 )
 
-type Config struct {
-	ServerAddress        string
+type Configuration struct {
+	RunAddress           string
 	DatabaseURI          string
 	AccrualSystemAddress string
-	JWTSecret            string
-	DBType               string
-	TokenExpiry          time.Duration
 }
 
-func LoadConfig() *Config {
-	// Определение флагов
-	serverAddress := flag.String("a", ":8080", "Address and port to run the server (RUN_ADDRESS)")
-	databaseURI := flag.String("d", "postgres://kshmirko:123123@kshmirko1.fvds.ru:5432/kshmirko", "Database connection string (DATABASE_URI)")
-	accrualSystemAddress := flag.String("r", "http://accrual-system.local", "Accrual system address (ACCRUAL_SYSTEM_ADDRESS)")
-	jwtSecret := flag.String("jwt-secret", "secret", "Secret key for JWT token signing (JWT_SECRET)")
-	tokenExpiry := flag.Duration("token-expiry", time.Hour*24, "JWT token expiry duration")
-	dbType := flag.String("db-type", "postgres", "Database type (DB_TYPE)")
+func NewConfiguration() *Configuration {
+	cfg := &Configuration{}
+	flag.StringVar(&cfg.RunAddress, "a", "localhost:8080", "адрес интерфейса, на котором запускать сервер")
+	flag.StringVar(&cfg.DatabaseURI, "d", "", "параметры подключения к базе данных")
+	flag.StringVar(&cfg.AccrualSystemAddress, "r", "", "адрес системы расчёта начислений")
+	return cfg
+}
 
-	// Парсинг флагов
+func LoadConfig() (*Configuration, error) {
+	cfg := NewConfiguration()
+	cfg.Parse()
+	return cfg, nil
+}
+
+func (c *Configuration) Parse() {
 	flag.Parse()
-
-	// Создание конфигурации на основе переданных флагов
-	config := &Config{
-		ServerAddress:        *serverAddress,
-		DatabaseURI:          *databaseURI,
-		AccrualSystemAddress: *accrualSystemAddress,
-		JWTSecret:            *jwtSecret,
-		TokenExpiry:          *tokenExpiry,
-		DBType:               *dbType,
+	if envRunAddress := os.Getenv("RUN_ADDRESS"); envRunAddress != "" {
+		c.RunAddress = envRunAddress
 	}
+	if envDatabaseURI := os.Getenv("DATABASE_URI"); envDatabaseURI != "" {
+		c.DatabaseURI = envDatabaseURI
+	}
+	if envAccrualSystemAddress := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); envAccrualSystemAddress != "" {
+		c.AccrualSystemAddress = envAccrualSystemAddress
+	}
+}
 
-	return config
+func (c *Configuration) String() string {
+	return strings.Join([]string{
+		"RunAddress: " + c.RunAddress,
+		"DatabaseURI: " + c.DatabaseURI,
+		"AccrualSystemAddress: " + c.AccrualSystemAddress,
+	}, ", \n")
 }

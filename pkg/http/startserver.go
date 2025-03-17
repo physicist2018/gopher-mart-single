@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services/order"
+	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services/token"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	"github.com/physicist2018/gopher-mart-single/internal/adapters/http/controllers"
-	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services"
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/auth"
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/balance"
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/orders"
@@ -28,7 +28,7 @@ type Server struct {
 	registerUseCase register.UseCase
 	balanceUseCase  balance.UseCase
 	orderUseCase    orders.UseCase
-	tokenService    services.TokenService
+	tokenService    token.TokenService
 	orderService    order.Service
 	logger          *zerolog.Logger
 }
@@ -45,7 +45,7 @@ type Server struct {
 func NewServer(listenAddr string, authUseCase auth.UseCase,
 	regUseCase register.UseCase, balanceUseCase balance.UseCase,
 	orderUseCase orders.UseCase,
-	tokenService services.TokenService,
+	tokenService token.TokenService,
 	orderService order.Service,
 	logger *zerolog.Logger) *Server {
 	mux := http.NewServeMux()

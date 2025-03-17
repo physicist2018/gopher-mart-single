@@ -47,5 +47,6 @@ func (w *WithdrawUseCase) Withdraw(userID int, orderID string, orderPrice float6
 }
 
 func (w *WithdrawUseCase) Withdrawals(userID int) ([]entities.WithdrawResponse, error) {
+
 	return nil, nil
 }

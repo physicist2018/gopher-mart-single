@@ -1,19 +1,12 @@
 package luhn
 
 import (
-	"errors"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var (
-	ErrLuhnCheck             = errors.New("invalid number")
-	ErrLunhCheckHasNotDigits = errors.New("number contains non-digit characters")
-)
-
-// luhnCheckDigit вычисляет контрольную цифру для переданной последовательности чисел
 func checkDigit(numbers []int) int {
 	sum := 0
 	alt := false
@@ -35,7 +28,6 @@ func checkDigit(numbers []int) int {
 	return (10 - (sum % 10)) % 10
 }
 
-// generateLuhnNumber генерирует случайное число с проверочной цифрой Луна и возвращает строковое представление
 func GenerateLuhnNumber(length int) string {
 	if length < 2 {
 		return ""
@@ -61,7 +53,7 @@ func GenerateLuhnNumber(length int) string {
 	return sb.String()
 }
 
-// validateLuhnNumber проверяет, корректно ли число по алгоритму Луна
+// ValidateLuhnNumber проверяет, корректно ли число по алгоритму Луна
 func ValidateLuhnNumber(number string) bool {
 	// Преобразуем строку в срез целых чисел
 	numbers := make([]int, len(number))

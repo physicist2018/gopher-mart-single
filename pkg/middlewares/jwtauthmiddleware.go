@@ -2,10 +2,9 @@ package middlewares
 
 import (
 	"context"
+	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services/token"
 	"net/http"
 	"strings"
-
-	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services"
 )
 
 // UserIDKey используется для хранения идентификатора пользователя в контексте запроса.
@@ -14,7 +13,7 @@ type UserIDKey struct{}
 // JWTAuthMiddleware создает middleware для аутентификации пользователя с использованием JWT-токена.
 // tokenService - сервис для работы с JWT-токенами (валидация, извлечение данных).
 // Возвращает middleware, который проверяет наличие и валидность токена, а также добавляет userID в контекст запроса.
-func JWTAuthMiddleware(tokenService services.TokenService) func(http.Handler) http.Handler {
+func JWTAuthMiddleware(tokenService token.TokenService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var token string

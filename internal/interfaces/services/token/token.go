@@ -1,4 +1,4 @@
-package services
+package token
 
 type TokenService interface {
 	GenerateToken(userID int) (string, error)

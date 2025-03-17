@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	_ "embed"
 	"fmt"
 	"github.com/physicist2018/gopher-mart-single/pkg/orderservice"
 	"os"
@@ -17,8 +19,10 @@ import (
 	"github.com/physicist2018/gopher-mart-single/internal/usecases/register"
 	"github.com/physicist2018/gopher-mart-single/pkg/http"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
+
+//go:embed "sql/schema.sql"
+var schemaSQL string
 
 func main() {
 	logger := zerolog.New(os.Stderr).Level(zerolog.DebugLevel).With().Timestamp().Logger()
@@ -29,8 +33,16 @@ func main() {
 	logger.Info().Msg(cfg.String())
 
 	db, err := sqlx.Connect("postgres", cfg.DatabaseURI)
+
 	if err != nil {
-		log.Fatal().Err(fmt.Errorf("connection error [%w]", err))
+		logger.Fatal().Err(fmt.Errorf("connection error [%w]", err))
+	}
+
+	preapereSchemaCtx, prepareSchemaCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	_, err = db.ExecContext(preapereSchemaCtx, schemaSQL)
+	defer prepareSchemaCancel()
+	if err != nil {
+		logger.Fatal().Err(fmt.Errorf("schema error [%w]", err))
 	}
 
 	userRepo := repositories.NewUserRepositoryImpl(db)

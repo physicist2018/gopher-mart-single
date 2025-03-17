@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories/user"
+	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services/token"
 
-	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUseCase struct {
 	userRepo     repository.Repository
-	tokenService services.TokenService
+	tokenService token.TokenService
 }
 
-func NewAuthUseCase(userRepo repository.Repository, tokenService services.TokenService) *AuthUseCase {
+func NewAuthUseCase(userRepo repository.Repository, tokenService token.TokenService) *AuthUseCase {
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,

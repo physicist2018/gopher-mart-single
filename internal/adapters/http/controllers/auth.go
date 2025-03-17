@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"github.com/physicist2018/gopher-mart-single/internal/entities"
-	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/user"
+	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/auth"
 )
 
 // AuthController is a struct that represents a controller for authentication.
 // It contains a pointer to an AuthUseCase object.
 type AuthController struct {
-	authUseCase user.AuthUseCase
+	authUseCase auth.UseCase
 }
 
 // NewAuthController is a function that creates a new AuthController.
 // It takes a pointer to an AuthUseCase object as an argument and returns a pointer to an AuthController.
-func NewAuthController(authUseCase user.AuthUseCase) *AuthController {
+func NewAuthController(authUseCase auth.UseCase) *AuthController {
 	return &AuthController{authUseCase: authUseCase}
 }
 

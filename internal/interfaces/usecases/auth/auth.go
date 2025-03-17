@@ -1,5 +1,5 @@
-package user
+package auth
 
-type RegisterUseCase interface {
+type UseCase interface {
 	Execute(login, password string) (string, error)
 }

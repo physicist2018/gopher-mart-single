@@ -3,12 +3,12 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories/user"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/physicist2018/gopher-mart-single/internal/entities"
-	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

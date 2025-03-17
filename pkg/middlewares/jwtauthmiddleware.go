@@ -8,26 +8,26 @@ import (
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services"
 )
 
-// UserIDKey is a struct that represents a key for the user ID in the context.
+// UserIDKey используется для хранения идентификатора пользователя в контексте запроса.
 type UserIDKey struct{}
 
-// JWTAuthMiddleware is a function that creates a middleware for JWT authentication.
-// It takes a TokenService as an argument and returns a function that takes an http.Handler and returns an http.Handler.
-// The returned function checks if the request has an Authorization header or a token cookie,
-// validates the token using the TokenService, and adds the user ID to the request context.
-// If there is an error during the process, it returns a 401 Unauthorized error.
+// JWTAuthMiddleware создает middleware для аутентификации пользователя с использованием JWT-токена.
+// tokenService - сервис для работы с JWT-токенами (валидация, извлечение данных).
+// Возвращает middleware, который проверяет наличие и валидность токена, а также добавляет userID в контекст запроса.
 func JWTAuthMiddleware(tokenService services.TokenService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var token string
 			authHeader := r.Header.Get("Authorization")
 			if authHeader != "" {
+				// Извлекаем токен из заголовка Authorization (формат: "Bearer <token>")
 				tokenParts := strings.Split(authHeader, " ")
 				if len(tokenParts) == 2 || tokenParts[0] == "Bearer" {
 					token = tokenParts[1]
 				}
 			}
 
+			// Если токен не найден в заголовке, проверяем куки
 			if token == "" {
 				cookie, err := r.Cookie("token")
 				if err == nil {
@@ -35,17 +35,20 @@ func JWTAuthMiddleware(tokenService services.TokenService) func(http.Handler) ht
 				}
 			}
 
+			// Если токен отсутствует, возвращаем ошибку 401 Unauthorized
 			if token == "" {
 				http.Error(w, "Authorization token is required", http.StatusUnauthorized)
 				return
 			}
 
+			// Валидируем токен и извлекаем userID
 			userID, err := tokenService.ValidateToken(token)
 			if err != nil {
 				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 
+			// Добавляем userID в контекст запроса
 			ctx := context.WithValue(r.Context(), UserIDKey{}, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

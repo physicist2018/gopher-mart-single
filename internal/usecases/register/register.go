@@ -1,21 +1,21 @@
-package user
+package register
 
 import (
 	"context"
 	"errors"
+	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories/user"
 
 	"github.com/physicist2018/gopher-mart-single/internal/entities"
-	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories"
 	"github.com/physicist2018/gopher-mart-single/internal/interfaces/services"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterUseCase struct {
-	userRepo     repository.UserRepository
+	userRepo     repository.Repository
 	tokenService services.TokenService
 }
 
-func NewRegisterUseCase(userRepo repository.UserRepository, tokenService services.TokenService) *RegisterUseCase {
+func NewRegisterUseCase(userRepo repository.Repository, tokenService services.TokenService) *RegisterUseCase {
 	return &RegisterUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,

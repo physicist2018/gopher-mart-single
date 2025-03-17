@@ -9,10 +9,10 @@ import (
 )
 
 type BalanceController struct {
-	balanceUseCase balance.BalanceUseCase
+	balanceUseCase balance.UseCase
 }
 
-func NewBalanceController(balanceUseCase balance.BalanceUseCase) *BalanceController {
+func NewBalanceController(balanceUseCase balance.UseCase) *BalanceController {
 	return &BalanceController{balanceUseCase: balanceUseCase}
 }
 

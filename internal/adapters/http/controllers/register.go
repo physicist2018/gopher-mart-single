@@ -3,22 +3,22 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories/user"
 	"net/http"
 
 	"github.com/physicist2018/gopher-mart-single/internal/entities"
-	repository "github.com/physicist2018/gopher-mart-single/internal/interfaces/repositories"
-	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/user"
+	"github.com/physicist2018/gopher-mart-single/internal/interfaces/usecases/register"
 )
 
 // RegisterController is a struct that represents a controller for registration.
 // It contains a pointer to a RegisterUseCase object.
 type RegisterController struct {
-	registerUseCase user.RegisterUseCase
+	registerUseCase register.UseCase
 }
 
 // NewRegisterController is a function that creates a new RegisterController.
 // It takes a pointer to a RegisterUseCase object as an argument and returns a pointer to a RegisterController.
-func NewRegisterController(registerUseCase user.RegisterUseCase) *RegisterController {
+func NewRegisterController(registerUseCase register.UseCase) *RegisterController {
 	return &RegisterController{registerUseCase: registerUseCase}
 }
 

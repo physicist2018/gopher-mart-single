@@ -1,4 +1,4 @@
-package repository
+package user
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 var (
 	ErrUserNotFound        = errors.New("user not found")
 	ErrInvalidCredentials  = errors.New("invalid credentials")
-	ErrUserAlreadyExists   = errors.New("user alreadey exists")
+	ErrUserAlreadyExists   = errors.New("user already exists")
 	ErrInternalServerError = errors.New("internal server error")
 )
 
-type UserRepository interface {
+type Repository interface {
 	FindByLogin(ctx context.Context, login string) (*entities.User, error)
 	Save(ctx context.Context, user *entities.User) error
 }
